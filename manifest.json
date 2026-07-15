@@ -1,0 +1,26 @@
+{
+  "id": "{{PLUGIN_ID}}",
+  "name": "{{PLUGIN_NAME}}",
+  "version": "0.1.0",
+  "description": "{{PLUGIN_NAME}} 插件",
+  "author": "",
+  "enabled": true,
+  "sidecar": {
+    "executable": "{{PLUGIN_ID}}-sidecar",
+    "runtime": "rust"
+  },
+  "frontend": {
+    "entry": "index.html",
+    "dist": "dist",
+    "framework": "vue"
+  },
+  "capabilities": [],
+  "routes": ["/tools/{{PLUGIN_ID}}"],
+  "activation_events": ["onRoute:/tools/{{PLUGIN_ID}}"],
+  "subscribed_events": [],
+  "dependencies": [],
+  "run_as_admin_default": false,
+  "requires_payment": false,
+  "supportedModes": ["inapp", "desktop", "popup"],
+  "defaultMode": "inapp"
+}

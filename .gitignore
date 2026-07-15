@@ -1,0 +1,23 @@
+# Build artifacts
+node_modules/
+dist/
+target/
+.build-staging/
+*.zip
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Lock files (keep pnpm-lock.yaml for reproducible installs)
+# Uncomment if you want to ignore lock files:
+# pnpm-lock.yaml

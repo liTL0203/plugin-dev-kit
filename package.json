@@ -1,0 +1,20 @@
+{
+  "name": "{{PLUGIN_ID}}",
+  "version": "0.1.0",
+  "description": "{{PLUGIN_NAME}} 插件",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm i --ignore-workspace && concurrently -n frontend,sidecar -c blue,green \"pnpm dev:frontend\" \"pnpm dev:sidecar\"",
+    "dev:sidecar": "cargo watch -C src -x build",
+    "build:zip": "pnpm i --ignore-workspace && node scripts/build-zip.mjs",
+    "dev:frontend": "cd frontend && pnpm i --ignore-workspace && pnpm dev --port 1421 --host",
+    "build:frontend": "cd frontend && pnpm i --ignore-workspace && pnpm build",
+    "build:sidecar": "cargo build --release --manifest-path src/Cargo.toml"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}

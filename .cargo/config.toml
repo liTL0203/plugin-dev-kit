@@ -1,0 +1,8 @@
+# Windows 静态链接 MSVC 运行时，消除对 VC++ Redistributable 的依赖
+# 所有 Rust sidecar 插件必须包含此配置，确保用户无需额外安装运行时
+
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]
+
+[target.i686-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]
