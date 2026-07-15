@@ -1,12 +1,23 @@
-# My Desktop Tools — 插件开发完整指南
+# My Desktop Tools — Plugin Development Guide
 
-> **版本**: v1.1 | **适用**: My Desktop Tools 插件系统 | **最后更新**: 2026-07-15
+> **Version**: v1.1 | **For**: My Desktop Tools Plugin System | **Last Updated**: 2026-07-15
 >
+> This document is the sole reference for developers and AI agents building plugins. Read it from start to finish to master everything needed for plugin development.
+>
+> **License**: MIT — see [LICENSE](./LICENSE) for details.
+
+<details>
+<summary>中文说明</summary>
+
 > 本文档是开发者和 AI 智能体开发插件的唯一参考。从头读到尾即可掌握插件开发所需的一切。
+>
+> **许可证**: MIT — 详见 [LICENSE](./LICENSE)。
+
+</details>
 
 ---
 
-## 阅读导航
+## Reading Guide / 阅读导航
 
 根据你的角色，推荐以下阅读路径：
 
@@ -1659,3 +1670,44 @@ AI 完成代码后**必须**执行以下验证：
 | **Bug 修复** | 最小化修复，不重构，不改 manifest |
 | **用户说"直接做"** | 可跳过 manifest 确认，但完成后必须验证 |
 | **纯前端插件** | 无 Sidecar，只需 manifest + frontend |
+
+---
+
+## License
+
+This project is licensed under the **MIT License** — see [LICENSE](./LICENSE).
+
+Copyright (c) 2026 li_tl
+
+---
+
+## ⚠️ Disclaimer
+
+- **"AS IS"**: This software is provided "AS IS", without any express or implied warranty.
+- **Use at Your Own Risk**: The developer shall not be liable for any direct or indirect losses caused by the use of this software.
+- **Third-Party Plugins**: Plugins built with this SDK are independently developed by third parties. The My Desktop Tools Core developer makes no guarantee regarding the behavior, security, or stability of third-party plugins.
+- **Compatibility Risks**: This SDK may have unknown defects or be incompatible with certain system environments.
+- **Data Backup**: It is recommended to back up important data before using plugins built with this SDK.
+
+> Using this SDK indicates that you have read and agree to the above disclaimer.
+
+<details>
+<summary>中文免责声明</summary>
+
+## 开源许可证
+
+本项目采用 **MIT 许可证** — 详见 [LICENSE](./LICENSE)。
+
+版权所有 (c) 2026 li_tl
+
+## ⚠️ 免责声明
+
+- **按"原样"提供**：本软件按"原样"（AS IS）提供，开发者不提供任何明示或暗示的担保。
+- **风险自担**：用户因使用本软件而造成的任何直接或间接损失，开发者不承担任何责任。
+- **第三方插件免责**：使用本 SDK 开发的插件由第三方独立开发，My Desktop Tools 核心程序开发者不对第三方插件的行为、安全性及稳定性作出任何保证。
+- **兼容性风险**：本 SDK 可能存在未知缺陷，或与特定系统环境不兼容。
+- **数据备份**：建议在使用基于本 SDK 开发的插件前备份重要数据。
+
+> 使用本 SDK 即表示您已阅读并同意以上免责声明。
+
+</details>
