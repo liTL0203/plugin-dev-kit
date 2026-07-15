@@ -1,12 +1,12 @@
-# My Desktop Tools — Plugin Development Guide
+# My Desktop Tools — 插件开发指南
 
-> **Version**: v1.1 | **For**: My Desktop Tools Plugin System | **Last Updated**: 2026-07-15
+> **版本**: v1.1 | **适用**: My Desktop Tools 插件系统 | **最后更新**: 2026-07-15
 >
-> This document is the sole reference for developers and AI agents building plugins. Read it from start to finish to master everything needed for plugin development.
+> 本文档是开发者和 AI 智能体开发插件的唯一参考。从头读到尾即可掌握插件开发所需的一切。
 >
-> **License**: MIT — see [LICENSE](./LICENSE) for details.
+> **许可证**: MIT — 详见 [LICENSE](./LICENSE)。
 
-**[中文版](./PLUGIN_DEV_GUIDE.zh-CN.md)** | **English**
+**[English](./PLUGIN_DEV_GUIDE.md)** | **中文版**
 
 ---
 
@@ -1666,20 +1666,20 @@ AI 完成代码后**必须**执行以下验证：
 
 ---
 
-## License
+## 开源许可证
 
-This project is licensed under the **MIT License** — see [LICENSE](./LICENSE).
+本项目采用 **MIT 许可证** — 详见 [LICENSE](./LICENSE)。
 
-Copyright (c) 2026 li_tl
+版权所有 (c) 2026 li_tl
 
 ---
 
-## ⚠️ Disclaimer
+## ⚠️ 免责声明
 
-- **"AS IS"**: This software is provided "AS IS", without any express or implied warranty.
-- **Use at Your Own Risk**: The developer shall not be liable for any direct or indirect losses caused by the use of this software.
-- **Third-Party Plugins**: Plugins built with this SDK are independently developed by third parties. The My Desktop Tools Core developer makes no guarantee regarding the behavior, security, or stability of third-party plugins.
-- **Compatibility Risks**: This SDK may have unknown defects or be incompatible with certain system environments.
-- **Data Backup**: It is recommended to back up important data before using plugins built with this SDK.
+- **按"原样"提供**：本软件按"原样"（AS IS）提供，开发者不提供任何明示或暗示的担保。
+- **风险自担**：用户因使用本软件而造成的任何直接或间接损失，开发者不承担任何责任。
+- **第三方插件免责**：使用本 SDK 开发的插件由第三方独立开发，My Desktop Tools 核心程序开发者不对第三方插件的行为、安全性及稳定性作出任何保证。用户应自行评估并承担使用风险。
+- **兼容性风险**：本 SDK 可能存在未知缺陷，或与特定系统环境不兼容。
+- **数据备份**：建议在使用基于本 SDK 开发的插件前备份重要数据。
 
-> Using this SDK indicates that you have read and agree to the above disclaimer.
+> 使用本 SDK 即表示您已阅读并同意以上免责声明。
