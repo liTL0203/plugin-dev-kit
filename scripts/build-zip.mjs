@@ -152,9 +152,13 @@ console.log('   ✓ Sidecar 构建完成\n');
 console.log('📂 准备打包文件...');
 fs.mkdirSync(stagingDir, { recursive: true });
 
-// 复制 manifest.json
-fs.copyFileSync(manifestPath, path.join(stagingDir, 'manifest.json'));
-console.log('   ✓ 复制 manifest.json');
+// 写入生产环境 manifest.json（剥离开发配置）
+const strippedFields = writeProductionManifest(manifest, path.join(stagingDir, 'manifest.json'));
+if (strippedFields.length > 0) {
+  console.log(`   ✓ 写入生产 manifest.json（已剥离开发配置: ${strippedFields.join(', ')}）`);
+} else {
+  console.log('   ✓ 写入 manifest.json（无开发配置需剥离）');
+}
 
 // 复制 dist/
 const distStagingDir = path.join(stagingDir, 'dist');
@@ -242,6 +246,39 @@ if (fs.existsSync(path.join(pluginRoot, 'CHANGELOG.md'))) {
   console.log('   - CHANGELOG.md (版本历史)');
 }
 console.log('\n💡 提示: ZIP 文件不包含源码，可以直接发布到插件市场\n');
+
+/**
+ * 生成生产环境 manifest.json（剥离开发配置）
+ *
+ * 生产 ZIP 包不应包含开发模式字段，避免：
+ * 1. dev_mode.enabled = true 导致插件被误标为开发模式
+ * 2. frontend.dev_port 泄露开发端口或意外触发 dev server 连接
+ *
+ * 仅写入 staging 副本，不修改源 manifest.json（保留本地开发配置）。
+ *
+ * @param {object} manifest - 原始 manifest 对象
+ * @param {string} destPath - staging 目标路径
+ * @returns {string[]} 被剥离的字段列表
+ */
+function writeProductionManifest(manifest, destPath) {
+  const prodManifest = JSON.parse(JSON.stringify(manifest));
+  const stripped = [];
+
+  // 剥离 dev_mode（热更新预留配置）
+  if ('dev_mode' in prodManifest) {
+    delete prodManifest.dev_mode;
+    stripped.push('dev_mode');
+  }
+
+  // 剥离 frontend.dev_port（开发服务器端口）
+  if (prodManifest.frontend && 'dev_port' in prodManifest.frontend) {
+    delete prodManifest.frontend.dev_port;
+    stripped.push('frontend.dev_port');
+  }
+
+  fs.writeFileSync(destPath, JSON.stringify(prodManifest, null, 2) + '\n');
+  return stripped;
+}
 
 /**
  * 递归复制目录
