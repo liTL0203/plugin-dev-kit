@@ -44,6 +44,26 @@ if (pluginId.includes('{{') || pluginName.includes('{{')) {
   process.exit(1);
 }
 
+// Step 1.5: 版本号同步 — package.json 为唯一来源（Source of Truth）
+// 自动将 package.json 的 version 同步到 manifest.json，防止版本不一致
+const pkgPath = path.join(pluginRoot, 'package.json');
+if (fs.existsSync(pkgPath)) {
+  const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+  const pkgVersion = pkg.version;
+  const manifestVersion = manifest.version;
+
+  if (pkgVersion && manifestVersion !== pkgVersion) {
+    console.warn(`   ⚠️ 版本不一致: package.json=${pkgVersion}, manifest.json=${manifestVersion}`);
+    console.warn(`   → 自动同步: manifest.json version → ${pkgVersion}`);
+    manifest.version = pkgVersion;
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
+  } else {
+    console.log(`   ✅ 版本一致: v${pkgVersion}`);
+  }
+} else {
+  console.warn('   ⚠️ 未找到 package.json，跳过版本同步');
+}
+
 console.log(`   插件 ID: ${pluginId}`);
 console.log(`   插件名称: ${pluginName}`);
 console.log(`   Sidecar 可执行文件: ${sidecarExecutable}\n`);
@@ -187,7 +207,18 @@ try {
   process.exit(1);
 }
 
-// Step 7: 获取文件大小
+// Step 7: 校验 ZIP 内的 manifest.json 版本号
+// 打开刚生成的 ZIP，读取其中的 manifest.json，验证 version 与 package.json 一致
+const zipVersion = verifyZipManifestVersion(zipPath, manifest.version);
+if (!zipVersion) {
+  console.error(`❌ ZIP 内 manifest.json 版本校验失败！`);
+  console.error(`   期望版本: ${manifest.version}`);
+  console.error(`   ZIP 文件: ${zipPath}`);
+  process.exit(1);
+}
+console.log(`   ✅ ZIP 内 manifest.json 版本校验通过: v${zipVersion}\n`);
+
+// Step 8: 获取文件大小
 const stats = fs.statSync(zipPath);
 const fileSizeMB = (stats.size / (1024 * 1024)).toFixed(2);
 console.log(`   ✓ ZIP 文件已创建: ${pluginId}.zip (${fileSizeMB} MB)\n`);
@@ -228,5 +259,54 @@ function copyDirectory(src, dest) {
     } else {
       fs.copyFileSync(srcPath, destPath);
     }
+  }
+}
+
+/**
+ * 校验 ZIP 内的 manifest.json 版本号
+ *
+ * 解压 ZIP 中的 manifest.json 并验证 version 字段是否与期望版本一致。
+ * 防止打包错误的版本号被发布。
+ *
+ * @param {string} zipPath - ZIP 文件路径
+ * @param {string} expectedVersion - 期望的版本号（来自 package.json）
+ * @returns {string|null} 匹配时返回版本号，不匹配或读取失败时返回 null
+ */
+function verifyZipManifestVersion(zipPath, expectedVersion) {
+  try {
+    const tempManifest = path.join(pluginRoot, '.build-staging', 'manifest_verify.json');
+    fs.mkdirSync(path.dirname(tempManifest), { recursive: true });
+
+    if (process.platform === 'win32') {
+      const tempExtractDir = path.join(pluginRoot, '.build-staging', 'verify');
+      fs.mkdirSync(tempExtractDir, { recursive: true });
+      execSync(
+        `Expand-Archive -Path "${zipPath}" -DestinationPath "${tempExtractDir}" -Force`,
+        { stdio: 'pipe', shell: 'powershell.exe' }
+      );
+      const extractedManifest = path.join(tempExtractDir, 'manifest.json');
+      if (!fs.existsSync(extractedManifest)) {
+        console.error('   ❌ ZIP 中未找到 manifest.json');
+        return null;
+      }
+      fs.copyFileSync(extractedManifest, tempManifest);
+    } else {
+      execSync(`unzip -o "${zipPath}" manifest.json -d "${path.dirname(tempManifest)}"`, {
+        stdio: 'pipe', shell: true,
+      });
+    }
+
+    const zipManifest = JSON.parse(fs.readFileSync(tempManifest, 'utf-8'));
+    const zipVersion = zipManifest.version;
+
+    if (zipVersion !== expectedVersion) {
+      console.error(`   ❌ ZIP 内版本 (${zipVersion}) 与期望版本 (${expectedVersion}) 不一致！`);
+      return null;
+    }
+
+    return zipVersion;
+  } catch (err) {
+    console.error(`   ❌ ZIP 版本校验异常: ${err.message}`);
+    return null;
   }
 }
