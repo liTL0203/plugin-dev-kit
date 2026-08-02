@@ -66,9 +66,9 @@ const sendTestEvent = (): void => {
       pluginId: '{{PLUGIN_ID}}',
       timestamp: Date.now()
     }, '*')
-    console.log('[{{PLUGIN_ID}}] 已发送 plugin:ready 事件')
+    // plugin:ready 事件已发送
   } else {
-    console.log('[{{PLUGIN_ID}}] 独立窗口模式，无法发送 postMessage')
+    // 独立窗口模式，无法发送 postMessage
   }
 }
 
