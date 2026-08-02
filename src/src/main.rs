@@ -1,6 +1,33 @@
 //! {{PLUGIN_NAME}} Sidecar
 //!
 //! 通过 stdin/stdout（普通模式）或命名管道（提权模式 `--elevated`）与 Core 进行 JSON-RPC 通信。
+//!
+//! # 敏感数据保护
+//!
+//! 插件中的敏感信息（API Key、私有 URL、加密密钥等）应使用 `obfstr` 宏进行编译期混淆，
+//! 防止通过 `strings` 命令或十六进制编辑器从二进制中提取明文。
+//!
+//! ## 使用示例
+//!
+//! ```ignore
+//! use obfstr::obfstr as s;
+//!
+//! fn get_api_key() -> &'static str {
+//!     // 编译期 XOR 加密 — 二进制中不存储明文，运行期按需解密
+//!     s!("sk-your-secret-api-key-12345")
+//! }
+//!
+//! fn get_service_url() -> &'static str {
+//!     s!("https://api.internal-service.example.com/v2/verify")
+//! }
+//! ```
+//!
+//! ## 敏感数据架构最佳实践
+//!
+//! 前端（JS）无法真正隐藏密钥（代码可被格式化阅读），因此遵循以下原则：
+//! 1. 所有敏感数据（API Key、Token）存储在 Rust Sidecar 中，使用 `obfstr!()` 保护
+//! 2. 前端通过 JSON-RPC 向 Sidecar 请求解密后的数据，不在 JS 中硬编码
+//! 3. Sidecar 在运行期按需解密并使用，解密后的明文仅存在于内存中
 
 // Windows 下隐藏控制台窗口
 #![cfg_attr(windows, windows_subsystem = "windows")]

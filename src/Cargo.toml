@@ -10,9 +10,33 @@ path = "src/main.rs"
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+# ── 编译期字符串混淆 ──
+# obfstr 提供编译期 XOR 加密的字符串字面量，防止静态分析提取敏感信息。
+# 二进制中不会出现明文字符串，仅在运行期按需解密。
+#
+# 使用方法：
+#   use obfstr::obfstr as s;
+#   let api_key = s!("sk-your-secret-key");  // 编译期 XOR 加密
+#   let url = s!("https://api.example.com/v1");
+#
+# 零运行时开销：未使用 obfstr!() 的代码不产生任何额外指令。
+obfstr = "0.4"
 
+# ── Dev 构建优化 ──
+# 不生成 debug info，加速增量编译
+[profile.dev]
+debug = 0
+incremental = true
+
+# ── Release 安全加固配置 ──
+# 在体积优化的基础上增加安全相关编译选项
 [profile.release]
-opt-level = "z"
-lto = true
-codegen-units = 1
-strip = true
+opt-level = "z"       # 体积优先优化（减小攻击面）
+lto = true            # full LTO：跨 crate 内联 + 死代码消除
+codegen-units = 1     # 单 codegen unit：最大化 LTO 效果
+strip = true          # 移除 debug 符号（配合 .cargo/config.toml /DEBUG:NONE）
+
+# ── 安全加固（新增）──
+panic = "abort"        # 禁用 unwind：移除异常展开表，减小体积 + 减小 ROP gadget 链
+overflow-checks = true # 整数溢出检查：防御算术溢出漏洞（release 默认关闭，此处强制开启）
+debug-assertions = false # 显式禁用 debug 断言（release 默认 false）

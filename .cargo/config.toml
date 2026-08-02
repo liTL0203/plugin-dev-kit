@@ -1,8 +1,88 @@
-# Windows 静态链接 MSVC 运行时，消除对 VC++ Redistributable 的依赖
-# 所有 Rust sidecar 插件必须包含此配置，确保用户无需额外安装运行时
+# .cargo/config.toml
+#
+# Rust Sidecar 二进制安全加固配置
+#
+# 本配置对所有使用此模板的插件生效，确保编译产物具备以下安全特性：
+#   1. 静态链接 MSVC 运行时（消除 VC++ Redistributable 依赖）
+#   2. 控制流防护 CFG（Control Flow Guard）— 运行时校验间接调用目标
+#   3. 地址空间布局随机化 ASLR + 高熵 ASLR
+#   4. 数据执行保护 DEP/NX
+#   5. PDB 路径引用抑制（防止开发环境路径泄露）
+#   6. SafeSEH（32 位独有）— 安全结构化异常处理
 
+# ═══════════════════════════════════════════════════════════════
+# 64 位 Windows（x86_64）安全链接标志
+# ═══════════════════════════════════════════════════════════════
 [target.x86_64-pc-windows-msvc]
-rustflags = ["-C", "target-feature=+crt-static"]
+rustflags = [
+  # ── 运行时静态链接 ──
+  # 静态链接 MSVC 运行时，用户无需安装 VC++ Redistributable
+  "-C", "target-feature=+crt-static",
 
+  # ── 控制流防护（CFG）──
+  # 编译器在间接调用前插入校验指令，运行时验证调用目标是否在有效列表中。
+  # 有效防御 ROP/JOP 等 control-flow 劫持攻击。
+  # 要求：Rust 1.71+（stable 通道）
+  "-C", "control-flow-guard=yes",
+
+  # ── PDB 路径引用抑制 ──
+  # /DEBUG:NONE 阻止链接器在 PE 头中嵌入 .pdb 文件名引用。
+  # 配合 [profile.release] strip=true，彻底移除调试符号信息。
+  # 效果：二进制中不再出现 ".pdb" 后缀的开发环境绝对路径。
+  "-C", "link-arg=/DEBUG:NONE",
+
+  # ── ASLR 地址空间布局随机化 ──
+  # /DYNAMICBASE：启用 ASLR，每次加载基址随机化
+  "-C", "link-arg=/DYNAMICBASE",
+  # /HIGHENTROPYVA：高熵 ASLR（64 位独有），增大随机化范围至全 47 位地址空间
+  "-C", "link-arg=/HIGHENTROPYVA",
+
+  # ── 数据执行保护（DEP/NX）──
+  # /NXCOMPAT：标记堆栈/堆为不可执行，防止 shellcode 注入
+  "-C", "link-arg=/NXCOMPAT",
+]
+
+# ═══════════════════════════════════════════════════════════════
+# 32 位 Windows（i686）安全链接标志
+# ═══════════════════════════════════════════════════════════════
 [target.i686-pc-windows-msvc]
-rustflags = ["-C", "target-feature=+crt-static"]
+rustflags = [
+  # 静态链接 MSVC 运行时
+  "-C", "target-feature=+crt-static",
+
+  # PDB 路径引用抑制
+  "-C", "link-arg=/DEBUG:NONE",
+
+  # ASLR 地址空间布局随机化
+  "-C", "link-arg=/DYNAMICBASE",
+
+  # 数据执行保护（DEP/NX）
+  "-C", "link-arg=/NXCOMPAT",
+
+  # SafeSEH（32 位独有）— 安全结构化异常处理
+  # 验证异常处理函数地址在注册列表中，防止 SEH 覆写攻击
+  "-C", "link-arg=/SAFESEH",
+]
+
+# ═══════════════════════════════════════════════════════════════
+# 开发环境路径擦除（按需启用）
+# ═══════════════════════════════════════════════════════════════
+#
+# 默认情况下，Rust 编译器会将源码绝对路径嵌入二进制（用于 panic 信息）。
+# 这会泄露开发者的用户名、项目路径等敏感信息。
+#
+# 启用方法：取消下方注释，将路径前缀替换为你的实际路径。
+#
+# [build]
+# rustflags = [
+#   # 重写项目源码路径（将绝对路径替换为 "app"）
+#   "--remap-path-prefix=C:\\path\\to\\your\\plugin\\src=app",
+#   # 重写 Cargo 注册表路径
+#   "--remap-path-prefix=C:\\Users\\yourname\\.cargo=CARGO_HOME",
+#   # 重写 Rust 工具链路径
+#   "--remap-path-prefix=C:\\Users\\yourname\\.rustup=RUSTUP_HOME",
+# ]
+#
+# 验证方法：
+#   cargo build --release --manifest-path src/Cargo.toml
+#   然后在二进制中搜索 "C:\"、"Users" 或你的用户名（应无结果）

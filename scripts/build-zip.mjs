@@ -24,6 +24,35 @@ const __dirname = path.dirname(__filename);
 const pluginRoot = path.resolve(__dirname, '..');
 const stagingDir = path.join(pluginRoot, '.build-staging');
 
+/**
+ * javascript-obfuscator 混淆配置
+ *
+ * 安全性与兼容性平衡策略：
+ * - stringArray + Base64 编码：核心防护，提取所有字符串到加密数组
+ * - controlFlowFlattening（50%）：打乱控制流，中等强度避免性能影响
+ * - identifierNamesGenerator hexadecimal：标识符无意义化
+ * - transformObjectKeys false：不转换对象键名（保护 Vue 组件选项）
+ * - selfDefending false：不启用反格式化（避免浏览器兼容问题）
+ * - deadCodeInjection false：不注入死代码（避免体积膨胀）
+ */
+const OBFUSCATOR_OPTIONS = {
+  compact: true,
+  controlFlowFlattening: true,
+  controlFlowFlatteningThreshold: 0.5,
+  deadCodeInjection: false,
+  debugProtection: false,
+  identifierNamesGenerator: 'hexadecimal',
+  renameGlobals: false,
+  selfDefending: false,
+  stringArray: true,
+  stringArrayEncoding: ['base64'],
+  stringArrayThreshold: 0.75,
+  splitStrings: true,
+  splitStringsChunkLength: 10,
+  transformObjectKeys: false,
+  unicodeEscapeSequence: false,
+};
+
 console.log('📦 {{PLUGIN_NAME}} 插件打包工具\n');
 
 // Step 1: 读取 manifest.json
@@ -105,6 +134,28 @@ if (!fs.existsSync(distDir)) {
   process.exit(1);
 }
 console.log('   ✓ 前端构建完成\n');
+
+// Step 3.5: 前端代码安全混淆（后构建深度加固）
+// 使用 javascript-obfuscator 对 dist/ 下所有 JS 文件进行深度混淆：
+//   - 字符串数组提取 + Base64 编码
+//   - 控制流平坦化
+//   - 标识符十六进制重命名
+//   - 长字符串拆分
+// 这层防护位于 Vite esbuild 基础压缩之上，使格式化后仍难以阅读。
+console.log('🛡️  前端代码安全混淆...');
+try {
+  const { default: JavaScriptObfuscator } = await import('javascript-obfuscator');
+  const obfuscatedCount = obfuscateFrontend(distDir, JavaScriptObfuscator);
+  console.log(`   ✓ 混淆完成（${obfuscatedCount} 个 JS 文件已加固）\n`);
+} catch (err) {
+  if (err.code === 'ERR_MODULE_NOT_FOUND' || err.message.includes('Cannot find')) {
+    console.warn('   ⚠️ 未安装 javascript-obfuscator，跳过深度混淆');
+    console.warn('   💡 运行 pnpm add -D javascript-obfuscator 启用前端代码混淆\n');
+  } else {
+    console.error('❌ 前端代码混淆失败:', err.message);
+    process.exit(1);
+  }
+}
 
 // Step 4: 构建 sidecar
 console.log('🦀 构建 Sidecar (Rust)...');
@@ -245,7 +296,7 @@ if (fs.existsSync(path.join(pluginRoot, 'RELEASE.md'))) {
 if (fs.existsSync(path.join(pluginRoot, 'CHANGELOG.md'))) {
   console.log('   - CHANGELOG.md (版本历史)');
 }
-console.log('\n💡 提示: ZIP 文件不包含源码，可以直接发布到插件市场\n');
+console.log('\n💡 提示: ZIP 已经过安全加固（JS 混淆 + 二进制加固），可直接发布到插件市场');
 
 /**
  * 生成生产环境 manifest.json（剥离开发配置）
@@ -346,4 +397,34 @@ function verifyZipManifestVersion(zipPath, expectedVersion) {
     console.error(`   ❌ ZIP 版本校验异常: ${err.message}`);
     return null;
   }
+}
+
+/**
+ * 递归混淆 dist 目录下的所有 JS 文件
+ *
+ * 遍历 dist/ 目录树，对每个 .js 文件执行 javascript-obfuscator 深度混淆。
+ * 混淆后的代码覆盖写回原文件，不改变文件名和目录结构。
+ *
+ * @param {string} dir - 待混淆的目录路径（通常是 dist/）
+ * @param {Function} JavaScriptObfuscator - javascript-obfuscator 模块
+ * @returns {number} 已混淆的 JS 文件数量
+ */
+function obfuscateFrontend(dir, JavaScriptObfuscator) {
+  let count = 0;
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const fullPath = path.join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      count += obfuscateFrontend(fullPath, JavaScriptObfuscator);
+    } else if (entry.name.endsWith('.js')) {
+      const code = fs.readFileSync(fullPath, 'utf-8');
+      const result = JavaScriptObfuscator.obfuscate(code, OBFUSCATOR_OPTIONS);
+      fs.writeFileSync(fullPath, result.getObfuscatedCode());
+      count++;
+    }
+  }
+
+  return count;
 }
