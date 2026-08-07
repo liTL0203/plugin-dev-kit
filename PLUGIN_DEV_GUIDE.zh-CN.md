@@ -808,6 +808,60 @@ const settings = await invokeCore('get_settings')
 await feLog('info', 'MyPlugin', '用户点击了开始按钮')
 ```
 
+### 5.6 双模式 UI 开发（Popup vs InApp）
+
+在 `supportedModes` 中同时声明 `inapp` 和 `popup` 的插件，可以采用**双模式 UI 架构**——同一套前端代码根据加载方式渲染不同界面。
+
+#### 模式检测
+
+Core 将插件加载到 iframe 中。当插件作为**独立 Popup 窗口**运行时（由快捷操作触发或从侧边栏脱离），iframe URL 包含 `#/standalone-plugin/{pluginId}`。在**主窗口内嵌**模式（通过侧边栏导航），URL 不包含此 hash。
+
+```typescript
+// App.vue — 模式检测
+import { computed } from 'vue'
+import PopupComponent from './components/PopupMode.vue'
+import InAppComponent from './components/InAppMode.vue'
+
+const isPopupMode = computed(() =>
+  window.location.hash.includes('/standalone-plugin/')
+)
+```
+
+#### 条件渲染
+
+```vue
+<template>
+  <PopupComponent v-if="isPopupMode" />
+  <InAppComponent v-else />
+</template>
+```
+
+两个组件共享同一个 composable（如 ai-translator 的 `useTranslator.ts`），但各自渲染不同的 UI：
+
+| 维度 | Popup 模式 | InApp 模式 |
+|------|-----------|------------|
+| **定位** | 快捷操作执行 | 完整功能体验 |
+| **布局** | 单栏，紧凑 | 双栏（工作区 + 侧面板） |
+| **功能** | 仅核心功能（翻译） | + 设置、历史、模板 |
+| **配置控件** | 隐藏（使用默认值） | 完整配置面板 |
+| **窗口尺寸** | 小（如 400×480） | 主窗口全区域 |
+| **触发方式** | 快捷操作面板选择 | 侧边栏导航点击 |
+
+#### 最佳实践
+
+1. **共享业务逻辑**：将所有状态管理和 API 调用抽取到 composable（`useXxx.ts`），两种模式共用。
+2. **Popup = 精简**：只展示当前任务所需的内容。不含设置、历史管理、模型选择。
+3. **InApp = 完整**：在核心功能旁边提供完整的配置、历史和设置面板。
+4. **主题同步**：两种模式共享根 `App.vue` 中基于 postMessage 的主题/语言同步逻辑。
+5. **Manifest 配置**：`defaultMode: "popup"` + `standalone.width/height` 控制 Popup 窗口尺寸。
+
+#### 实际示例：ai-translator 插件
+
+- `App.vue`：检测模式，渲染 `PopupTranslate.vue` 或 `InAppTranslate.vue`
+- `PopupTranslate.vue`：源文本预览 + 翻译结果 + 复制按钮 + 语言快捷切换。无模型选择器、无设置面板。
+- `InAppTranslate.vue`：双栏布局 — 左侧：手动输入 + 翻译；右侧：历史列表 + 设置面板。
+- `useTranslator.ts`：共享 composable，包含 `doTranslate()`、`loadAiConfig()`、`handleContextData()` 等。
+
 ---
 
 ## 6. Core ↔ Sidecar 通信协议 (JSON-RPC 2.0)

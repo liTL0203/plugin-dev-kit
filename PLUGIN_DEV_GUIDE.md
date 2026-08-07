@@ -808,6 +808,60 @@ const settings = await invokeCore('get_settings')
 await feLog('info', 'MyPlugin', '用户点击了开始按钮')
 ```
 
+### 5.6 Dual-Mode UI Development (Popup vs InApp)
+
+Plugins that declare both `inapp` and `popup` in `supportedModes` can benefit from a **dual-mode UI** architecture: the same frontend codebase renders different interfaces depending on how the plugin is loaded.
+
+#### Mode Detection
+
+The Core loads plugins into iframes. When a plugin runs as a **standalone popup window** (triggered by Quick Action or detached from sidebar), the iframe URL contains `#/standalone-plugin/{pluginId}`. When running **in-app** (embedded in the main window via sidebar navigation), the URL does not contain this hash.
+
+```typescript
+// App.vue — mode detection
+import { computed } from 'vue'
+import PopupComponent from './components/PopupMode.vue'
+import InAppComponent from './components/InAppMode.vue'
+
+const isPopupMode = computed(() =>
+  window.location.hash.includes('/standalone-plugin/')
+)
+```
+
+#### Conditional Rendering
+
+```vue
+<template>
+  <PopupComponent v-if="isPopupMode" />
+  <InAppComponent v-else />
+</template>
+```
+
+Both components share the same composable (`useTranslator.ts` in the ai-translator example) for business logic, but each renders a different UI:
+
+| Aspect | Popup Mode | InApp Mode |
+|--------|-----------|------------|
+| **Purpose** | Quick action execution | Full feature experience |
+| **Layout** | Single column, compact | Dual-pane (workspace + sidebar) |
+| **Features** | Core function only (translate) | + Settings, history, templates |
+| **Config controls** | Hidden (use defaults) | Full configuration panel |
+| **Window size** | Small (e.g., 400×480) | Full main window area |
+| **Trigger** | Quick Action panel selection | Sidebar navigation click |
+
+#### Best Practices
+
+1. **Share business logic**: Extract all state management and API calls into a composable (`useXxx.ts`), used by both modes.
+2. **Popup = minimal**: Only show what's needed for the immediate task. No settings, no history management, no model selection.
+3. **InApp = complete**: Provide full configuration, history, and settings alongside the core function.
+4. **Theme sync**: Both modes share the same postMessage-based theme/language synchronization logic in the root `App.vue` shell.
+5. **Manifest configuration**: `defaultMode: "popup"` + `standalone.width/height` control the popup window dimensions.
+
+#### Real Example: ai-translator Plugin
+
+- `App.vue`: Detects mode, renders `PopupTranslate.vue` or `InAppTranslate.vue`
+- `PopupTranslate.vue`: Source text preview + result + copy button + language chips. No model selector, no settings.
+- `InAppTranslate.vue`: Dual-pane layout — left: manual input + translate; right: history list + settings panel.
+- `useTranslator.ts`: Shared composable with `doTranslate()`, `loadAiConfig()`, `handleContextData()`, etc.
+
 ---
 
 ## 6. Core ↔ Sidecar 通信协议 (JSON-RPC 2.0)
