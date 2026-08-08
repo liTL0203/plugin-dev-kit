@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "description": "{{PLUGIN_NAME}} 插件",
   "author": "",
+  "private": true,
   "enabled": true,
   "sidecar": {
     "executable": "{{PLUGIN_ID}}-sidecar",

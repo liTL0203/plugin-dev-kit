@@ -191,6 +191,7 @@ my-plugin.zip
   "version": "1.0.0",
   "description": "一句话描述插件功能",
   "author": "作者名",
+  "private": true,
   "enabled": true,
 
   "sidecar": {
@@ -224,6 +225,7 @@ my-plugin.zip
 | `version` | string | 是 | — | 语义化版本，如 `"1.0.0"` |
 | `description` | string | 否 | `""` | 插件描述 |
 | `author` | string | 否 | `""` | 作者 |
+| `private` | boolean | 否 | `true` | 私有插件标记：`true`（默认）表示私有插件，发版时被过滤，**不会**出现在商城 `plugins.json` 目录；`false` 或删除该字段表示公开插件，正常进入商城目录，所有用户可见可安装 |
 | `enabled` | boolean | 否 | `true` | 是否启用 |
 | `sidecar` | object | 否 | `null` | 后端配置，无后端则省略 |
 | `frontend` | object | 否 | `null` | 前端配置，无 UI 则省略 |
@@ -236,6 +238,17 @@ my-plugin.zip
 | `requires_payment` | boolean | 否 | `false` | 是否需要付费解锁 |
 | `supportedModes` | string[] | 否 | `["inapp", "desktop", "popup"]` | 支持的运行模式 |
 | `defaultMode` | string | 否 | `"inapp"` | 默认运行模式 |
+
+### private 字段说明
+
+`private` 字段控制插件是否进入公开商城目录（`plugins.json`），默认值为 `true`（私有）。
+
+- **`private: true`（默认）**：私有插件。发版脚本扫描时被过滤，**不会**出现在商城 `plugins.json` 目录中；但仍可构建 ZIP 并创建 GitHub Release 供指定用户定向下载。
+- **`private: false` 或删除该字段**：公开插件。正常进入商城目录，所有用户可见可安装。
+
+开发者若想公开某个插件，只需在 `manifest.json` 中将该参数改为 `false`（或移除字段）即可，无需其他额外操作。
+
+> **注意**：`manifest.json` 为 JSON 格式，不支持 `//` 行注释，字段语义以本文档为准。
 
 ### run_as_admin_default 说明
 
