@@ -1,0 +1,30 @@
+{
+  "purpose": {
+    "en": "Describe why this plugin was created and what problem it solves.",
+    "zh": "描述创建此插件的目的和它解决的问题。"
+  },
+  "useCases": {
+    "en": [
+      "Use case 1: describe a scenario where this plugin is useful",
+      "Use case 2: another scenario"
+    ],
+    "zh": [
+      "场景 1：描述此插件适用的一个场景",
+      "场景 2：另一个场景"
+    ]
+  },
+  "longDescription": {
+    "en": "A longer description of the plugin, shown in the detail modal.",
+    "zh": "插件的详细描述，在详情弹窗中展示。"
+  },
+  "features": {
+    "en": [
+      "Feature 1: describe a key feature",
+      "Feature 2: another feature"
+    ],
+    "zh": [
+      "功能 1：描述一个核心功能",
+      "功能 2：另一个功能"
+    ]
+  }
+}
