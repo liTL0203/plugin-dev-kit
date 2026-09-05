@@ -7,9 +7,12 @@
     "dev": "pnpm i --ignore-workspace && concurrently -n frontend,sidecar -c blue,green \"pnpm dev:frontend\" \"pnpm dev:sidecar\"",
     "dev:sidecar": "cargo watch -C src -x build",
     "build:zip": "pnpm i --ignore-workspace && node scripts/build-zip.mjs",
-    "dev:frontend": "cd frontend && pnpm i --ignore-workspace && pnpm dev --port 1421 --host",
-    "build:frontend": "cd frontend && pnpm i --ignore-workspace && pnpm build",
-    "build:sidecar": "cargo build --release --manifest-path src/Cargo.toml"
+    "dev:frontend": "cd frontend && pnpm i && pnpm dev --port 1421 --host",
+    "build:frontend": "cd frontend && pnpm i && pnpm build",
+    "build:sidecar": "cargo build --release --manifest-path src/Cargo.toml",
+    "lint": "cd frontend && pnpm i && pnpm lint",
+    "lint:fix": "cd frontend && pnpm i && pnpm lint:fix",
+    "clippy": "cargo clippy --manifest-path src/Cargo.toml -- -D warnings"
   },
   "keywords": [],
   "author": "",

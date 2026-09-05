@@ -48,7 +48,7 @@ fn main() {
 }
 
 /// 主事件循环：读取 JSON-RPC 请求 → 处理 → 返回响应
-fn run_event_loop<R: BufRead, W: Write>(mut reader: R, writer: &mut W) {
+fn run_event_loop<R: BufRead, W: Write>(reader: R, writer: &mut W) {
     for line in reader.lines() {
         let line = match line {
             Ok(l) => l,

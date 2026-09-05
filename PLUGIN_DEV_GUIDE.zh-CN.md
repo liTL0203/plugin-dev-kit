@@ -1167,6 +1167,22 @@ cd my-plugin/
 cargo build --release --manifest-path src/Cargo.toml
 ```
 
+### 11.2.1 代码规范检查（lint）
+
+模板前端默认内置 ESLint（配置文件 `frontend/eslint.config.js`，规则与核心程序一致）：
+
+```bash
+# 在插件根目录
+pnpm lint          # 检查（error 级问题会导致发版被拒）
+pnpm lint:fix      # 自动修复（no-explicit-any / no-unused-vars 等需人工处理）
+
+# 或直接在 frontend 目录
+cd frontend && pnpm lint
+```
+
+> 发版脚本会对所有待发布插件自动执行 lint 门禁（error 级阻断）。
+> 如不需要 lint，删除 `frontend/eslint.config.js`、`frontend/package.json` 中的 lint 脚本与 eslint 相关 devDependencies 即可。
+
 ### 11.3 安装插件
 
 在 My Desktop Tools 的 **插件管理页面** 点击"安装插件"，选择 `.zip` 文件。

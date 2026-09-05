@@ -1180,6 +1180,22 @@ cd my-plugin/
 cargo build --release --manifest-path src/Cargo.toml
 ```
 
+### 11.2.1 Lint (Code Style Check)
+
+The template frontend ships with ESLint by default (`frontend/eslint.config.js`, rules aligned with the core app):
+
+```bash
+# From the plugin root
+pnpm lint          # Check (error-level issues block release)
+pnpm lint:fix      # Auto-fix (no-explicit-any / no-unused-vars etc. need manual fixes)
+
+# Or directly from the frontend directory
+cd frontend && pnpm lint
+```
+
+> The release pipeline runs a lint gate on all plugins being published (error-level issues abort the release).
+> To opt out, delete `frontend/eslint.config.js` plus the lint scripts and eslint devDependencies in `frontend/package.json`.
+
 ### 11.3 安装插件
 
 在 My Desktop Tools 的 **插件管理页面** 点击"安装插件"，选择 `.zip` 文件。

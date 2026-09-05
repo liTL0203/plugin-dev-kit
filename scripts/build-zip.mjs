@@ -117,7 +117,7 @@ if (!fs.existsSync(frontendDir)) {
 }
 
 try {
-  execSync('pnpm vite build', {
+  execSync('pnpm build', {
     cwd: path.join(pluginRoot, 'frontend'),
     stdio: 'inherit',
     shell: true

@@ -1,0 +1,7 @@
+# pnpm v11 配置（package.json 的 pnpm 字段已废弃，设置移至本文件）
+# allowBuilds 为 v11 统一的构建脚本批准键（替代旧 onlyBuiltDependencies）
+# esbuild: vite 依赖，需要 postinstall 安装平台二进制
+# unrs-resolver: eslint-plugin-import-x 传递依赖，自带预编译平台二进制，禁用其构建脚本
+allowBuilds:
+  esbuild: true
+  unrs-resolver: false

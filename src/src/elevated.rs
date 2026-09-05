@@ -14,7 +14,7 @@
 //! }
 //! ```
 
-use std::io::{self, BufRead, BufReader, BufWriter, Write};
+use std::io::{self, BufReader, BufWriter};
 
 /// 检查是否以提权模式启动（Core 传递 `--elevated` 参数）
 pub fn is_elevated() -> bool {
@@ -86,7 +86,9 @@ pub fn run_elevated<F: FnOnce(BufReader<&std::fs::File>, &mut BufWriter<&std::fs
         )
     };
 
+    // Windows API 结构体：字段名保留 Win32 原始匈牙利命名，便于与官方文档对照
     #[repr(C)]
+    #[allow(non_snake_case)]
     struct SECURITY_ATTRIBUTES {
         nLength: u32,
         lpSecurityDescriptor: *mut std::ffi::c_void,
