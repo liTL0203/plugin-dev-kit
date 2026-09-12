@@ -9,7 +9,7 @@
  *   node scripts/build-zip.mjs
  * 
  * 输出：
- *   - {{PLUGIN_ID}}.zip （包含 manifest.json + dist/ + sidecar 二进制）
+ *   - publish/{{PLUGIN_ID}}.zip （包含 manifest.json + dist/ + sidecar 二进制）
  */
 
 import fs from 'fs';
@@ -22,7 +22,9 @@ const __dirname = path.dirname(__filename);
 
 // 从插件根目录运行此脚本
 const pluginRoot = path.resolve(__dirname, '..');
-const stagingDir = path.join(pluginRoot, '.build-staging');
+// 插件自有发布目录：ZIP 与 staging 都写入插件根 publish/（release.mjs 从此处取包上传）
+const publishDir = path.join(pluginRoot, 'publish');
+const stagingDir = path.join(publishDir, '.staging');
 
 /**
  * javascript-obfuscator 混淆配置
@@ -241,7 +243,8 @@ if (fs.existsSync(changelogPath)) {
 
 // Step 6: 创建 ZIP 文件
 console.log('🗜️  创建 ZIP 文件...');
-const zipPath = path.join(pluginRoot, `${pluginId}.zip`);
+fs.mkdirSync(publishDir, { recursive: true });
+const zipPath = path.join(publishDir, `${pluginId}.zip`);
 
 try {
   if (platform === 'win32') {
@@ -362,11 +365,11 @@ function copyDirectory(src, dest) {
  */
 function verifyZipManifestVersion(zipPath, expectedVersion) {
   try {
-    const tempManifest = path.join(pluginRoot, '.build-staging', 'manifest_verify.json');
+    const tempManifest = path.join(stagingDir, 'manifest_verify.json');
     fs.mkdirSync(path.dirname(tempManifest), { recursive: true });
 
     if (process.platform === 'win32') {
-      const tempExtractDir = path.join(pluginRoot, '.build-staging', 'verify');
+      const tempExtractDir = path.join(stagingDir, 'verify');
       fs.mkdirSync(tempExtractDir, { recursive: true });
       execSync(
         `Expand-Archive -Path "${zipPath}" -DestinationPath "${tempExtractDir}" -Force`,

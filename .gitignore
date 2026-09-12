@@ -2,7 +2,6 @@
 node_modules/
 dist/
 target/
-.build-staging/
 *.zip
 
 # IDE
@@ -21,3 +20,6 @@ Thumbs.db
 # Lock files (keep pnpm-lock.yaml for reproducible installs)
 # Uncomment if you want to ignore lock files:
 # pnpm-lock.yaml
+
+# 打包发布目录（build-zip.mjs 产物）
+publish/
