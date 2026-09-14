@@ -1,0 +1,10 @@
+# 插件本地 workspace 根声明
+#
+# 作用：阻断 pnpm 向上查找到仓库根的 pnpm-workspace.yaml（pnpm 12 会把本目录
+# 纳入上游 workspace 模式，导致 `pnpm i` 空转、node_modules 不落地，
+# dev 脚本里的 concurrently / build:zip 的 javascript-obfuscator 找不到）。
+#
+# packages 显式声明仅本目录一个项目；frontend/ 有自己的 pnpm-workspace.yaml，
+# 其依赖独立安装（cd frontend && pnpm i），不在此扫描。
+packages:
+  - .
