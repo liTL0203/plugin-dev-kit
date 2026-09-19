@@ -20,5 +20,6 @@
   "devDependencies": {
     "concurrently": "^10.0.4",
     "javascript-obfuscator": "^5.5.0"
-  }
+  },
+  "packageManager": "pnpm@10.34.5"
 }
