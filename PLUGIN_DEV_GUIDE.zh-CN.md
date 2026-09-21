@@ -192,6 +192,7 @@ my-plugin.zip
   "description": "一句话描述插件功能",
   "author": "作者名",
   "enabled": true,
+  "icon": "icon.png",
 
   "sidecar": {
     "executable": "my-plugin-sidecar",
@@ -223,6 +224,7 @@ my-plugin.zip
 | `name` | string | 是 | — | 显示名称，如 `"番茄钟"` |
 | `version` | string | 是 | — | 语义化版本，如 `"1.0.0"` |
 | `description` | string | 否 | `""` | 插件描述 |
+| `icon` | string | 否 | `null` | 插件图标文件名（相对插件根目录，如 `"icon.png"`）。放一个 PNG 在插件根目录并声明此字段即可——打包脚本会自动将图标文件打进 zip（缺失则打包警告）。不声明时核心显示分类默认图标 |
 | `author` | string | 否 | `""` | 作者 |
 | `enabled` | boolean | 否 | `true` | 是否启用 |
 | `sidecar` | object | 否 | `null` | 后端配置，无后端则省略 |
@@ -1398,6 +1400,32 @@ pnpm build:zip
   "category": "focus"
 }
 ```
+
+---
+
+## 附录 C2：全局热键 (hotkey)
+
+在 `manifest.json` 中可选添加 `"hotkey"` 字段，声明插件的全局呼出热键：
+
+```json
+{
+  "id": "clipboard",
+  "hotkey": "Alt+V",
+  "supportedModes": ["inapp", "desktop", "popup"]
+}
+```
+
+**行为**（核心 `plugin/hotkey_channel.rs` 统一处理，插件侧零代码）：
+
+- 插件启动成功后由核心注册；按下热键 toggle 该插件的独立窗口
+  （无窗口→打开并幂等拉起 sidecar；窗口可见且聚焦→隐藏；可见未聚焦/隐藏→抬前）
+- 插件停止/禁用时自动精准注销，热键释放回系统
+- 仅 `supportedModes` 含 `desktop` 或 `popup` 的插件生效（热键终点是独立窗口）
+- 键格式同 QL 热键（`Modifier+Key`，如 `Alt+V` / `Ctrl+Alt+K`）
+- 冲突先到先得：键被 QL/QA/其他插件/外部程序占用时核心仅记 warn 日志降级，
+  插件其余功能不受影响（查看 `plugins/{id}.log` / `main.log` 中的 `[PluginHotkey]`）
+
+设计文档：`.docs/core/plugin-system/tasks/plugin-hotkey-channel/design.md`
 
 ---
 

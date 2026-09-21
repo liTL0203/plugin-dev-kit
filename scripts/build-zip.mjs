@@ -221,6 +221,19 @@ console.log('   ✓ 复制 dist/');
 
 // 复制 sidecar 二进制
 fs.copyFileSync(sidecarBinary, path.join(stagingDir, path.basename(sidecarBinary)));
+
+// 复制插件图标（2026-09-13 修复：此前 zip 从不包含 icon 文件，市场安装的
+// 插件在侧边栏/气泡全部显示占位图标——开发机正常是因为源码目录旁就有 icon）
+const iconFile = typeof manifest.icon === 'string' ? manifest.icon : '';
+if (iconFile && /^[\w.-]+\.(png|jpg|jpeg|svg|gif|webp|ico)$/i.test(iconFile)) {
+  const iconPath = path.join(pluginRoot, iconFile);
+  if (fs.existsSync(iconPath)) {
+    fs.copyFileSync(iconPath, path.join(stagingDir, iconFile));
+    console.log(`   ✓ 复制 ${iconFile}`);
+  } else {
+    console.warn(`   ⚠️ manifest.icon 声明了 ${iconFile} 但文件不存在，跳过`);
+  }
+}
 console.log(`   ✓ 复制 ${path.basename(sidecarBinary)}`);
 
 // 复制 RELEASE.md → ZIP 内的 README.md（用户可见的功能说明文档）
