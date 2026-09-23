@@ -13,6 +13,9 @@ import { useI18n } from 'vue-i18n'
 
 const { t, locale: i18nLocale } = useI18n()
 
+/** 插件显示名（脚手架生成后改为实际插件名） */
+const PLUGIN_NAME = '插件名称'
+
 /** 当前主题状态 */
 const currentTheme = ref<'dark' | 'light'>('dark')
 
